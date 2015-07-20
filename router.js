@@ -1,11 +1,21 @@
-var fs = require("fs");
+var fs = require("fs"),
+	path = require("path");
+
+function addRoutesFolder(app, folder) {
+	var files = fs.readdirSync(folder);
+
+	for (var i = 0; i < files.length; i++) {
+		var merge = "./" + path.join(folder, files[i]),
+			info = fs.statSync(merge);
+		if (info.isFile()) {
+			var route = require(merge);
+			app.use(route);
+		} else if (info.isDirectory()) {
+			addRoutesFolder(app, merge);
+		}
+	}
+}
 
 module.exports = function(app) {
-    var dir = "./routes/",
-        files = fs.readdirSync(dir);
-
-    for (var i = 0; i < files.length; i++) {
-        var route = require(dir + files[i]);
-        app.use(route);
-    }
-}
+	addRoutesFolder(app, "./routes/");
+};
